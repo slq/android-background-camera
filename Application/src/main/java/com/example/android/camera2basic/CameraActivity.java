@@ -18,18 +18,57 @@ package com.example.android.camera2basic;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class CameraActivity extends Activity {
+
+    private Camera2BasicFragment fragment;
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private volatile boolean run = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         if (null == savedInstanceState) {
+            fragment = Camera2BasicFragment.newInstance();
             getFragmentManager().beginTransaction()
-                    .replace(R.id.container, Camera2BasicFragment.newInstance())
+                    .replace(R.id.container, fragment)
                     .commit();
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            Log.d("YYY", "DOWN");
+            run = true;
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    while(run) {
+                        Log.d("YYY", "PIC");
+                        fragment.takePicture();
+                        try {
+                            TimeUnit.SECONDS.sleep(2);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    Log.d("YYY", "Finished");
+                }
+            });
+        }
+
+        if(keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            Log.d("YYY", "UP");
+            run = false;
+        }
+        return true;
+    }
 }

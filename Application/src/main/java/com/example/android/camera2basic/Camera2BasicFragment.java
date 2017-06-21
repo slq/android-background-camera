@@ -67,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -230,11 +231,6 @@ public class Camera2BasicFragment extends Fragment
     private ImageReader mImageReader;
 
     /**
-     * This is the output file for our picture.
-     */
-    private File mFile;
-
-    /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
@@ -243,7 +239,8 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            File dir = getActivity().getExternalFilesDir(null);
+            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), dir));
         }
 
     };
@@ -434,7 +431,6 @@ public class Camera2BasicFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
     }
 
     @Override
@@ -508,12 +504,28 @@ public class Camera2BasicFragment extends Fragment
                     continue;
                 }
 
+                Size[] highResolutionOutputSizes = map.getOutputSizes(ImageFormat.JPEG);
+                for (Size size : highResolutionOutputSizes) {
+                    Log.d("XXX", size.toString());
+                }
+
+//                for (Size size : map.getOutputSizes(ImageFormat.RAW10)) {
+//                    Log.d("XXX", size.toString());
+//                }
+
+//                for (Size size : map.getHighResolutionOutputSizes(ImageFormat.JPEG)) {
+//                    Log.d("XXX HI", size.toString());
+//                }
+
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new CompareSizesByArea());
+
+                Log.d("XXX", "Chosen: " + largest.toString());
+
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
+                        ImageFormat.JPEG,10);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
@@ -685,7 +697,7 @@ public class Camera2BasicFragment extends Fragment
 
             // We set up a CaptureRequest.Builder with the output Surface.
             mPreviewRequestBuilder
-                    = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                    = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             mPreviewRequestBuilder.addTarget(surface);
 
             // Here, we create a CameraCaptureSession for camera preview.
@@ -695,9 +707,9 @@ public class Camera2BasicFragment extends Fragment
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                             // The camera is already closed
-                            if (null == mCameraDevice) {
-                                return;
-                            }
+//                            if (null == mCameraDevice) {
+//                                return;
+//                            }
 
                             // When the session is ready, we start displaying the preview.
                             mCaptureSession = cameraCaptureSession;
@@ -765,8 +777,15 @@ public class Camera2BasicFragment extends Fragment
     /**
      * Initiate a still image capture.
      */
-    private void takePicture() {
-        lockFocus();
+    public void takePicture() {
+//        for(int i = 0; i < 5; i++) {
+            lockFocus();
+//            try {
+//                Thread.sleep(200);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
     /**
@@ -835,8 +854,8 @@ public class Camera2BasicFragment extends Fragment
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
-                    Log.d(TAG, mFile.toString());
+//                    showToast("Saved: " + mFile);
+//                    Log.d(TAG, mFile.toString());
                     unlockFocus();
                 }
             };
@@ -905,8 +924,8 @@ public class Camera2BasicFragment extends Fragment
 
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
         if (mFlashSupported) {
-            requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
-                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+//            requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+//                    CaptureRequest.CONTROL_AE_MODE_OFF);
         }
     }
 
@@ -935,8 +954,10 @@ public class Camera2BasicFragment extends Fragment
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
             FileOutputStream output = null;
+            String timestamp = new Date().getTime() + ".jpg";
+            File file = new File(mFile, timestamp);
             try {
-                output = new FileOutputStream(mFile);
+                output = new FileOutputStream(file);
                 output.write(bytes);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -951,7 +972,6 @@ public class Camera2BasicFragment extends Fragment
                 }
             }
         }
-
     }
 
     /**
