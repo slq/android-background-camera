@@ -46,13 +46,13 @@ public class CameraActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            Log.d("YYY", "DOWN");
+            Log.d("Key Control", "DOWN");
             run = true;
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
                     while(run) {
-                        Log.d("YYY", "PIC");
+                        Log.d("Key Control", "PIC");
                         fragment.takePicture();
                         try {
                             TimeUnit.SECONDS.sleep(2);
@@ -60,13 +60,13 @@ public class CameraActivity extends Activity {
                             e.printStackTrace();
                         }
                     }
-                    Log.d("YYY", "Finished");
+                    Log.d("Key Control", "Finished");
                 }
             });
         }
 
         if(keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-            Log.d("YYY", "UP");
+            Log.d("Key Control", "UP");
             run = false;
         }
         return true;

@@ -46,6 +46,7 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.content.ContextCompat;
@@ -775,14 +776,7 @@ public class Camera2BasicFragment extends Fragment implements FragmentCompat.OnR
      * Initiate a still image capture.
      */
     public void takePicture() {
-//        for(int i = 0; i < 5; i++) {
             lockFocus();
-//            try {
-//                Thread.sleep(200);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
     }
 
     /**
@@ -853,6 +847,8 @@ public class Camera2BasicFragment extends Fragment implements FragmentCompat.OnR
                                                @NonNull TotalCaptureResult result) {
 //                    showToast("Saved: " + mFile);
 //                    Log.d(TAG, mFile.toString());
+//                    Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+//                    v.vibrate(30);
                     unlockFocus();
                 }
             };
